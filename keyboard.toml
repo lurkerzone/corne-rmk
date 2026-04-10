@@ -62,6 +62,13 @@ unlock_keys = [[3, 3], [3, 4]]
 
 [ble]
 enabled = true
+#
+# Battery reporting over BLE (Battery Service / BAS).
+# Some RMK revisions only read battery config from the top-level `[ble]` section.
+# Keep these values in sync with the split-central/peripheral settings below.
+battery_adc_pin = "vddh"
+adc_divider_measured = 2000
+adc_divider_total = 2806
 
 [split]
 connection = "ble"
@@ -73,7 +80,7 @@ cols = 6
 row_offset = 0
 col_offset = 0
 ble_addr = [0x18, 0xe2, 0x21, 0x80, 0xc0, 0xc7]
-battery_adc_pin = "P0_04"
+battery_adc_pin = "vddh"
 adc_divider_measured = 2000
 adc_divider_total = 2806
 
@@ -89,7 +96,7 @@ cols = 6
 row_offset = 0
 col_offset = 6
 ble_addr = [0x7e, 0xfe, 0x73, 0x9e, 0x66, 0xe3]
-battery_adc_pin = "P0_04"
+battery_adc_pin = "vddh"
 adc_divider_measured = 2000
 adc_divider_total = 2806
 
