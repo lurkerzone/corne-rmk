@@ -1,3 +1,8 @@
+[config]
+# Root Cargo.toml is a workspace (panic-dfu path dep). Don't recurse `uf2`
+# into that member — it has no Makefile tasks.
+default_to_workspace = false
+
 [tasks.install-llvm-tools]
 install_crate = { rustup_component_name = "llvm-tools" }
 

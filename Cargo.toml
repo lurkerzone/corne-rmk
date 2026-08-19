@@ -8,31 +8,38 @@ license = "MIT OR Apache-2.0"
 readme = "README.md"
 
 [dependencies]
-# Pin to the RMK revision that matches the embassy 0.10 / nrf-sdc stack below (same as upstream `nrf52840_ble_split` example).
-# Keep RMK default features enabled (same as before the Vial experiment). Vial unlock is handled with `[host] unlock_keys` in keyboard.toml.
-rmk = { git = "https://github.com/HaoboGu/rmk", rev = "a8bc7ab051a146d4487642e769ce975d6e4132e4", features = [
+# Vendored rmk-rs/rmk @ f8da274 (PR #1038 / issue #710: split battery GATT).
+# Local patch: Vial is USB-only — the extra BLE HID service is stripped so
+# macOS binds the real keyboard HID service. See vendor/README.md.
+# `watchdog` stays off.
+rmk = { path = "vendor/rmk", default-features = false, features = [
+    "defmt",
+    "storage",
+    "vial",
+    "host_lock",
     "nrf52840_ble",
     "split",
     "async_matrix",
     "adafruit_bl",
+    "use_1m_phy",
 ] }
-nrf-sdc = { git = "https://github.com/haobogu/nrf-sdc", rev = "ffe59a7aefaaa145a3d2474602f33387f80dcefa", features = [
+nrf-sdc = { git = "https://github.com/alexmoon/nrf-sdc", rev = "f54b6389ffa2750d4d3a4f5435660cb66b47e51a", features = [
     "defmt",
     "peripheral",
     "central",
     "nrf52840",
 ] }
-nrf-mpsl = { git = "https://github.com/haobogu/nrf-sdc", rev = "ffe59a7aefaaa145a3d2474602f33387f80dcefa", features = [
+nrf-mpsl = { git = "https://github.com/alexmoon/nrf-sdc", rev = "f54b6389ffa2750d4d3a4f5435660cb66b47e51a", features = [
     "defmt",
     "critical-section-impl",
     "nrf52840",
 ] }
-bt-hci = { version = "0.8", features = ["defmt"] }
+bt-hci = { version = "0.9", features = ["defmt"] }
 
 cortex-m = "0.7.7"
 cortex-m-rt = "0.7.5"
 embassy-time = { version = "0.5", features = ["tick-hz-32_768", "defmt", "defmt-timestamp-uptime"] }
-embassy-nrf = { version = "0.10", features = [
+embassy-nrf = { version = "0.11", features = [
     "defmt",
     "nrf52840",
     "time-driver-rtc1",
@@ -46,14 +53,18 @@ embassy-executor = { version = "0.10", features = [
     "platform-cortex-m",
     "executor-thread",
 ] }
-defmt = "1.0"
-defmt-rtt = "1.0"
-panic-probe = { version = "1.0", features = ["print-defmt"] }
+defmt = "1"
+defmt-rtt = "1"
+# The macro-generated `use panic_probe as _;` still needs to resolve, so we keep
+# the *import name* `panic_probe` alive but swap the crate behind it for a tiny
+# local shim (`panic-dfu/`). The shim's `#[panic_handler]` writes
+# `DFU_MAGIC_UF2_RESET` (0x57) to `NRF_POWER->GPREGRET` and does `sys_reset()`,
+# so any panic reboots into the Adafruit UF2 bootloader instead of stalling in
+# a silent HardFault (which is what stock `panic-probe` does when `print-defmt`
+# is disabled, and which leaves the device looking bricked with no USB / no BT
+# / no NICENANO volume). See `panic-dfu/src/lib.rs`.
+panic-probe = { package = "corne-panic-dfu", path = "panic-dfu" }
 static_cell = "2"
-
-rand = { version = "0.8.4", default-features = false }
-rand_core = { version = "0.6" }
-rand_chacha = { version = "0.3", default-features = false }
 
 [build-dependencies]
 xz2 = "0.1.7"
@@ -82,3 +93,10 @@ debug = true
 opt-level = "z"
 overflow-checks = false
 lto = "fat"
+
+# Explicit workspace so cargo doesn't complain about the `panic-dfu/` path dep
+# being an implicit workspace member, and so `cargo build` at the root only
+# builds the firmware (the shim is pulled in as a normal dependency).
+[workspace]
+resolver = "2"
+members = ["panic-dfu"]

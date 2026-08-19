@@ -8,5 +8,10 @@ linker = "flip-link"
 target = "thumbv7em-none-eabihf"     # Cortex-M4F and Cortex-M7F (with FPU)
 
 [env]
-DEFMT_LOG = "debug"
+# `off` disables all defmt log statements at compile time so LTO can eliminate the
+# call sites entirely. Combined with `[dependency] defmt_log = false` in keyboard.toml
+# (null defmt logger, no defmt-rtt hookup), this trims tens of KiB from the release
+# firmware — useful for staying inside the nice!nano Adafruit bootloader's app slot.
+# Restore `= "debug"` (or `"info"`) if you need RTT logs while debugging over a probe.
+DEFMT_LOG = "off"
 KEYBOARD_TOML_PATH =  { value = "keyboard.toml", relative = true }

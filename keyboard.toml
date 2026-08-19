@@ -15,65 +15,99 @@ vendor_id = 0x4c4b
 product_id = 0x636f
 manufacturer = "corne-rmk"
 chip = "nrf52840"
+usb_enable = true
 
+# nice!nano v2 has the REG0/REG1 LC filters. The generic nrf52840 chip default
+# leaves DCDC off; turn it on explicitly (without using board = "nice!nano_v2",
+# which also injects VDDH battery ADC and hangs in saadc.calibrate() before USB).
+[chip.nrf52840]
+dcdc_reg0 = true
+dcdc_reg1 = true
+dcdc_reg0_voltage = "3V3"
+
+# `[layout]` holds the *physical* arrangement (grid size + `map` of key positions).
+# The logical *behavior* (layers and keycodes) lives in `[keymap]` below.
+# A Corne has 3 alpha rows (12 keys each) plus a 3+3 thumb row, so 42 real keys.
+# Thumb keys occupy global columns 3-8 on row 3; the outer positions don't exist.
 [layout]
 rows = 4
 cols = 12
-layers = 4
-keymap = [
-  # Layer 0 — default (aligned with ZMK `corne` default_layer)
-  [
-    ["Tab", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "Backspace"],
-    ["LCtrl", "A", "S", "D", "F", "G", "H", "J", "K", "L", "Semicolon", "Quote"],
-    ["LShift", "Z", "X", "C", "V", "B", "N", "M", "Comma", "Dot", "Slash", "Escape"],
-    ["_", "_", "_", "LGui", "MO(1)", "Space", "Enter", "MO(2)", "RAlt", "_", "_", "_"],
-  ],
-  # Layer 1 — lower (numbers + arrows; add Bluetooth actions via Vial custom keys if needed)
-  [
-    ["Tab", "Kc1", "Kc2", "Kc3", "Kc4", "Kc5", "Kc6", "Kc7", "Kc8", "Kc9", "Kc0", "Backspace"],
-    ["LCtrl", "_", "_", "_", "_", "_", "Left", "Down", "Up", "Right", "_", "_"],
-    ["LShift", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_"],
-    ["_", "_", "_", "LGui", "_", "Space", "Enter", "_", "RAlt", "_", "_", "_"],
-  ],
-  # Layer 2 — raise (US shifted number row / symbols; matches ZMK raise intent)
-  [
-    ["Tab", "SHIFTED(Kc1)", "SHIFTED(Kc2)", "SHIFTED(Kc3)", "SHIFTED(Kc4)", "SHIFTED(Kc5)", "SHIFTED(Kc6)", "SHIFTED(Kc7)", "SHIFTED(Kc8)", "SHIFTED(Kc9)", "SHIFTED(Kc0)", "Backspace"],
-    ["LCtrl", "_", "_", "_", "_", "_", "Minus", "Equal", "LeftBracket", "RightBracket", "Backslash", "Grave"],
-    ["LShift", "_", "_", "_", "_", "_", "SHIFTED(Minus)", "SHIFTED(Equal)", "SHIFTED(LeftBracket)", "SHIFTED(RightBracket)", "SHIFTED(Backslash)", "SHIFTED(Grave)"],
-    ["_", "_", "_", "LGui", "_", "Space", "Enter", "MO(3)", "RAlt", "_", "_", "_"],
-  ],
-  # Layer 3 — fourth layer (empty by default; edit in Vial). Hold Raise, then hold the key between Enter and RAlt to use MO(3).
-  [
-    ["_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_"],
-    ["_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_"],
-    ["_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_"],
-    ["_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_"],
-  ],
-]
+map = """
+(0,0)  (0,1)  (0,2)  (0,3)  (0,4)  (0,5)      (0,6)  (0,7)  (0,8)  (0,9)  (0,10) (0,11)
+(1,0)  (1,1)  (1,2)  (1,3)  (1,4)  (1,5)      (1,6)  (1,7)  (1,8)  (1,9)  (1,10) (1,11)
+(2,0)  (2,1)  (2,2)  (2,3)  (2,4)  (2,5)      (2,6)  (2,7)  (2,8)  (2,9)  (2,10) (2,11)
+                            (3,3)  (3,4)  (3,5)  (3,6)  (3,7)  (3,8)
+"""
 
-# Hold these keys (matrix row, col on the 4×12 map) while Vial runs “Unlock” — required because RMK enables `vial_lock` by default.
-# Default-layer left thumb: LGui (3,3) + Lower (3,4). Change if your keymap moves them.
+[keymap]
+layers = 4
+
+# Layer 0 - default (aligned with ZMK `corne` default_layer)
+[[keymap.layer]]
+keys = """
+Tab    Q  W  E  R  T          Y  U  I      O    P          Backspace
+LCtrl  A  S  D  F  G          H  J  K      L    Semicolon  Quote
+LShift Z  X  C  V  B          N  M  Comma  Dot  Slash      Escape
+                    LGui  MO(1)  Space  Enter  MO(2)  RAlt
+"""
+
+# Layer 1 - lower (numbers + arrows; add Bluetooth actions via Vial custom keys if needed)
+[[keymap.layer]]
+keys = """
+Tab    Kc1  Kc2  Kc3  Kc4  Kc5      Kc6   Kc7   Kc8  Kc9    Kc0  Backspace
+LCtrl  _    _    _    _    _        Left  Down  Up   Right  _    _
+LShift _    _    _    _    _        _     _     _    _      _    _
+                          LGui  _  Space  Enter  _  RAlt
+"""
+
+# Layer 2 - raise (US shifted number row / symbols; matches ZMK raise intent)
+[[keymap.layer]]
+keys = """
+Tab    SHIFTED(Kc1)  SHIFTED(Kc2)  SHIFTED(Kc3)  SHIFTED(Kc4)  SHIFTED(Kc5)      SHIFTED(Kc6)     SHIFTED(Kc7)   SHIFTED(Kc8)          SHIFTED(Kc9)           SHIFTED(Kc0)         Backspace
+LCtrl  _             _             _             _             _                 Minus            Equal          LeftBracket           RightBracket           Backslash            Grave
+LShift _             _             _             _             _                 SHIFTED(Minus)   SHIFTED(Equal) SHIFTED(LeftBracket)  SHIFTED(RightBracket)  SHIFTED(Backslash)   SHIFTED(Grave)
+                                                                     LGui  _  Space  Enter  MO(3)  RAlt
+"""
+
+# Layer 3 - fourth layer (empty by default; edit in Vial).
+# Hold Raise (MO(2)) then hold the key between Enter and RAlt to use MO(3).
+[[keymap.layer]]
+keys = """
+_  _  _  _  _  _      _  _  _  _  _  _
+_  _  _  _  _  _      _  _  _  _  _  _
+_  _  _  _  _  _      _  _  _  _  _  _
+              _  _  _  _  _  _
+"""
+
+# Hold LGui + Lower (left thumbs) while Vial runs Unlock.
 [host]
+vial_enabled = true
+rynk_enabled = false
 unlock_keys = [[3, 3], [3, 4]]
 
-# One-time factory reset: uncomment the next line, build, flash central (and peripheral), boot once, then comment out and flash again.
+# One-time factory reset: `clear_storage = true` erases the on-flash storage
+# partition on every boot (bond info, saved Vial edits, layout options). Required
+# once when upgrading across major RMK versions (v0.8 -> v0.9 changes the
+# sequential-storage schema, so leaving old bytes there faults the boot). Flash
+# central *and* peripheral with this on, power-cycle each half, then comment the
+# line back out and flash a second time.
 [storage]
 # clear_storage = true
 
+# Turn off defmt logging at the codegen level: the RMK macros emit a null
+# defmt logger instead of wiring up defmt-rtt, and combined with
+# `DEFMT_LOG = "off"` in .cargo/config.toml this lets LTO eliminate every
+# log call site. Restore `defmt_log = true` if you want RTT logs back.
+[dependency]
+defmt_log = false
+
 [ble]
 enabled = true
-#
-# Battery reporting over BLE (Battery Service / BAS).
-# Some RMK revisions only read battery config from the top-level `[ble]` section.
-# Keep these values in sync with the split-central/peripheral settings below.
-battery_adc_pin = "vddh"
-adc_divider_measured = 2000
-adc_divider_total = 2806
 
 [split]
 connection = "ble"
 
-# Left half — column order pro_micro 21,20,19,18,15,14 → P0_31,P0_29,P0_02,P1_15,P1_13,P1_11
+# Left half - column order pro_micro 21,20,19,18,15,14 -> P0_31,P0_29,P0_02,P1_15,P1_13,P1_11
 [split.central]
 rows = 4
 cols = 6
@@ -81,15 +115,14 @@ row_offset = 0
 col_offset = 0
 ble_addr = [0x18, 0xe2, 0x21, 0x80, 0xc0, 0xc7]
 battery_adc_pin = "vddh"
-adc_divider_measured = 2000
-adc_divider_total = 2806
+battery_user_description = "Left"
 
 [split.central.matrix]
 matrix_type = "normal"
 row_pins = ["P0_22", "P0_24", "P1_00", "P0_11"]
 col_pins = ["P0_31", "P0_29", "P0_02", "P1_15", "P1_13", "P1_11"]
 
-# Right half — column order pro_micro 14,15,18,19,20,21 → P1_11,P1_13,P1_15,P0_02,P0_29,P0_31
+# Right half - column order pro_micro 14,15,18,19,20,21 -> P1_11,P1_13,P1_15,P0_02,P0_29,P0_31
 [[split.peripheral]]
 rows = 4
 cols = 6
@@ -97,8 +130,7 @@ row_offset = 0
 col_offset = 6
 ble_addr = [0x7e, 0xfe, 0x73, 0x9e, 0x66, 0xe3]
 battery_adc_pin = "vddh"
-adc_divider_measured = 2000
-adc_divider_total = 2806
+battery_user_description = "Right"
 
 [split.peripheral.matrix]
 matrix_type = "normal"
