@@ -45,9 +45,9 @@ layers = 4
 # Layer 0 - default (aligned with ZMK `corne` default_layer)
 [[keymap.layer]]
 keys = """
-Tab    Q  W  E  R  T          Y  U  I      O    P          Backspace
-LCtrl  A  S  D  F  G          H  J  K      L    Semicolon  Quote
-LShift Z  X  C  V  B          N  M  Comma  Dot  Slash      Escape
+Tab    Q  W  F  P  B          J  L  U      Y    SemiColon          Backspace
+LCtrl  A  R  S  T  G          M  N  E      I    O  Quote
+LShift Z  X  C  D  V          K  H  Comma  Dot  Slash      Escape
                     LGui  MO(1)  Space  Enter  MO(2)  RAlt
 """
 
