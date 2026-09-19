@@ -45,10 +45,7 @@ async fn vbus_poll(vbus: &'static SoftwareVbusDetect) {
 mod keyboard_central {
     /// NEW: left-half nice!view.
     #[register_processor(event)]
-    fn nice_view() -> ::rmk::display::DisplayProcessor
-        crate::nice_view::NiceView,
-        ::rmk::display::OledRenderer,
-    > {
+    fn nice_view() -> crate::nice_view::NiceViewProcessor {
         crate::nice_view::processor()
     }
 
