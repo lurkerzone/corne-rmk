@@ -42,6 +42,14 @@ async fn vbus_poll(vbus: &'static SoftwareVbusDetect) {
 
 #[rmk_central]
 mod keyboard_central {
+        /// NEW: left-half nice!view.
+    #[register_processor(event)]
+    fn nice_view() -> ::rmk::display::DisplayProcessor
+        crate::nice_view::NiceView,
+        ::rmk::display::OledRenderer,
+    > {
+        crate::nice_view::processor()
+    }
     /// Software VBUS detect + a poller, instead of HardwareVbusDetect.
     #[Override(usb)]
     fn usb() {
