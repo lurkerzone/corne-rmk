@@ -141,7 +141,11 @@ impl DisplayDriver for NiceView {
 }
 
 /// Built-in RMK status screen; redraws every second so VCOM keeps toggling.
-pub fn processor() -> DisplayProcessor<NiceView, OledRenderer> {
+/// Short name so the entry files don't need generic types.
+pub type NiceViewProcessor = DisplayProcessor<NiceView, OledRenderer>;
+
+/// Built-in RMK status screen; redraws every second so VCOM keeps toggling.
+pub fn processor() -> NiceViewProcessor {
     DisplayProcessor::with_renderer(NiceView::new(), OledRenderer::default())
         .with_render_interval(Duration::from_millis(1000))
 }
