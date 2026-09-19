@@ -10,6 +10,6 @@ mod keyboard_peripheral {
     /// Right-half nice!view.
     #[register_processor(event)]
     fn nice_view() -> crate::nice_view::NiceViewProcessor {
-        crate::nice_view::processor()
+        crate::nice_view::processor_peripheral()
     }
 }
