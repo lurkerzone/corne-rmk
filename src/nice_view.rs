@@ -6,8 +6,12 @@ use embassy_nrf::gpio::{Level, Output, OutputDrive};
 use embassy_nrf::interrupt::{self, InterruptExt, Priority};
 use embassy_nrf::{Peripherals, bind_interrupts, peripherals, spim};
 use embassy_time::{Duration, Timer};
+use embedded_graphics::mono_font::ascii::{FONT_10X20, FONT_6X10};
+use embedded_graphics::mono_font::MonoTextStyle;
+use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
+use embedded_graphics::text::Text;
 use embedded_graphics::{pixelcolor::BinaryColor, prelude::*};
-use rmk::display::{DisplayDriver, DisplayProcessor, OledRenderer};
+use rmk::display::{DisplayDriver, DisplayProcessor, DisplayRenderer, RenderContext};
 
 bind_interrupts!(struct SpiIrqs {
     SPI2 => spim::InterruptHandler<peripherals::SPI2>;
@@ -15,7 +19,7 @@ bind_interrupts!(struct SpiIrqs {
 
 // ---- tweak these if the picture is wrong -----------------------------------
 const PORTRAIT: bool = true; // true: 68 wide x 160 tall (vertical, like ZMK)
-const FLIP: bool = false; // rotate 180 degrees if the image is upside down
+const FLIP: bool = true; // rotate 180 degrees if the image is upside down
 const INVERT: bool = false; // flip if you get white-on-black instead of black-on-white
 // -----------------------------------------------------------------------------
 
@@ -140,12 +144,65 @@ impl DisplayDriver for NiceView {
     }
 }
 
-/// Built-in RMK status screen; redraws every second so VCOM keeps toggling.
-/// Short name so the entry files don't need generic types.
-pub type NiceViewProcessor = DisplayProcessor<NiceView, OledRenderer>;
+/// Turn a number into text without needing the heapless crate.
+fn num_str(mut n: u16, buf: &mut [u8; 5]) -> &str {
+    let mut i = buf.len();
+    loop {
+        i -= 1;
+        buf[i] = b'0' + (n % 10) as u8;
+        n /= 10;
+        if n == 0 {
+            break;
+        }
+    }
+    core::str::from_utf8(&buf[i..]).unwrap_or("?")
+}
 
-/// Built-in RMK status screen; redraws every second so VCOM keeps toggling.
+/// Simple high-contrast screen sized for 68x160: border, layer, WPM, Caps/Num.
+#[derive(Default)]
+pub struct NiceViewRenderer;
+
+impl DisplayRenderer<BinaryColor> for NiceViewRenderer {
+    fn render<D: DrawTarget<Color = BinaryColor>>(&mut self, ctx: &RenderContext, display: &mut D) {
+        display.clear(BinaryColor::Off).ok();
+        if ctx.sleeping {
+            return;
+        }
+
+        let small = MonoTextStyle::new(&FONT_6X10, BinaryColor::On);
+        let big = MonoTextStyle::new(&FONT_10X20, BinaryColor::On);
+        let mut buf = [0u8; 5];
+
+        // Border: shows whether the whole canvas is visible and oriented correctly.
+        let size = display.bounding_box().size;
+        Rectangle::new(Point::zero(), size)
+            .into_styled(PrimitiveStyle::with_stroke(BinaryColor::On, 1))
+            .draw(display)
+            .ok();
+
+        Text::new("LAYER", Point::new(6, 18), small).draw(display).ok();
+        Text::new(num_str(ctx.layer as u16, &mut buf), Point::new(6, 42), big)
+            .draw(display)
+            .ok();
+
+        Text::new("WPM", Point::new(6, 72), small).draw(display).ok();
+        Text::new(num_str(ctx.wpm, &mut buf), Point::new(6, 96), big)
+            .draw(display)
+            .ok();
+
+        if ctx.caps_lock {
+            Text::new("CAPS", Point::new(6, 124), small).draw(display).ok();
+        }
+        if ctx.num_lock {
+            Text::new("NUM", Point::new(6, 138), small).draw(display).ok();
+        }
+    }
+}
+
+/// Short name so the entry files don't need generic types.
+pub type NiceViewProcessor = DisplayProcessor<NiceView, NiceViewRenderer>;
+
 pub fn processor() -> NiceViewProcessor {
-    DisplayProcessor::with_renderer(NiceView::new(), OledRenderer::default())
+    DisplayProcessor::with_renderer(NiceView::new(), NiceViewRenderer)
         .with_render_interval(Duration::from_millis(1000))
 }
