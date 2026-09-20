@@ -20,7 +20,7 @@ bind_interrupts!(struct SpiIrqs {
 
 // ---- tweak these if the picture is wrong -----------------------------------
 const PORTRAIT: bool = true;
-const FLIP: bool = true;
+const FLIP: bool = false;
 const INVERT: bool = false;
 // ---- screen content ----------------------------------------------------------
 const NUM_PROFILES: usize = 3; // RMK default is 3 BLE profiles
@@ -67,11 +67,16 @@ impl NiceView {
         }
         frame[FRAME_LEN - 1] = 0;
 
-        Self { spi, cs, frame, vcom: false }
+        Self { spi, cs, frame, vcom: false, last_vcom: Instant::from_ticks(0) }
     }
 
     async fn write_frame(&mut self) {
-        self.vcom = !self.vcom;
+        // Toggle VCOM about once a second, however often we redraw.
+        let now = Instant::now();
+        if now.duration_since(self.last_vcom) >= Duration::from_millis(1000) {
+            self.vcom = !self.vcom;
+            self.last_vcom = now;
+        }
         self.frame[0] = CMD_WRITE | if self.vcom { CMD_VCOM } else { 0 };
 
         self.cs.set_high();
@@ -221,7 +226,7 @@ fn pct_str(level: Option<u8>, buf: &mut [u8; 4]) -> &str {
         None => "--",
         Some(l) => {
             let l = l.min(100);
-            let mut n = 0;
+            let n;
             if l >= 100 {
                 buf[0] = b'1';
                 buf[1] = b'0';
@@ -267,140 +272,4 @@ fn draw_central_top<D: DrawTarget<Color = BinaryColor>>(ctx: &RenderContext, d: 
     let right_connected = ctx.peripherals_connected.first().copied().unwrap_or(false);
     let right_lvl = if right_connected {
         ctx.peripheral_batteries.first().and_then(|b| {
-            let s: BatteryStatus = (*b).into();
-            battery_level(s)
-        })
-    } else {
-        None
-    };
-    put_text(d, "R", 4, 19, false, ON);
-    battery_icon(d, 14, 18, 22, 11, right_lvl);
-    put_text(d, pct_str(right_lvl, &mut pb), 42, 19, false, ON);
-
-    // BLE profile circles (active one filled).
-    let sel = ctx.ble_status.profile as usize;
-    for i in 0..NUM_PROFILES {
-        let x = 6 + (i as i32) * 20;
-        let y = 36;
-        let selected = i == sel;
-        let circle = Circle::new(Point::new(x, y), 14);
-        if selected {
-            circle.into_styled(PrimitiveStyle::with_fill(ON)).draw(d).ok();
-        } else {
-            circle.into_styled(PrimitiveStyle::with_stroke(ON, 1)).draw(d).ok();
-        }
-        let digit = [b'1' + i as u8];
-        let s = core::str::from_utf8(&digit).unwrap_or("?");
-        put_text(d, s, x + 4, y + 2, false, if selected { OFF } else { ON });
-    }
-    let label = match ctx.ble_status.state {
-        BleState::Connected => "CONNECTED",
-        BleState::Advertising => "SEARCHING",
-        BleState::Inactive => "USB / OFF",
-    };
-    put_text(d, label, 7, 54, false, ON);
-}
-
-/// Right half: own battery and link to the left half.
-fn draw_peripheral_top<D: DrawTarget<Color = BinaryColor>>(ctx: &RenderContext, d: &mut D) {
-    let mut pb = [0u8; 4];
-    let own: BatteryStatus = ctx.battery.into();
-    let lvl = battery_level(own);
-    battery_icon(d, 4, 4, 34, 16, lvl);
-    put_text(d, pct_str(lvl, &mut pb), 42, 8, false, ON);
-
-    let link = if ctx.central_connected { "LINK: OK" } else { "LINK: --" };
-    put_text(d, link, 4, 28, false, ON);
-    put_text(d, "RIGHT", 4, 44, true, ON);
-}
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Role {
-    Central,
-    Peripheral,
-}
-
-pub struct NiceViewRenderer {
-    role: Role,
-    samples: [u8; GRAPH_SAMPLES],
-    last_sample: Instant,
-}
-
-impl NiceViewRenderer {
-    pub fn new(role: Role) -> Self {
-        Self {
-            role,
-            samples: [0; GRAPH_SAMPLES],
-            last_sample: Instant::from_ticks(0),
-        }
-    }
-
-    /// Push a WPM sample every 2 seconds.
-    fn sample(&mut self, wpm: u16) {
-        let now = Instant::now();
-        if now.duration_since(self.last_sample) >= Duration::from_secs(2) {
-            self.samples.copy_within(1.., 0);
-            self.samples[GRAPH_SAMPLES - 1] = wpm.min(255) as u8;
-            self.last_sample = now;
-        }
-    }
-
-    fn draw_bottom<D: DrawTarget<Color = BinaryColor>>(&self, ctx: &RenderContext, d: &mut D) {
-        let mut nb = [0u8; 5];
-        put_text(d, "WPM", 4, 70, false, ON);
-        put_text(d, num_str(ctx.wpm, &mut nb), 28, 70, false, ON);
-        if ctx.caps_lock {
-            put_text(d, "C", 52, 70, false, ON);
-        }
-        if ctx.num_lock {
-            put_text(d, "N", 60, 70, false, ON);
-        }
-
-        // WPM history graph.
-        let max = self.samples.iter().copied().max().unwrap_or(0).max(30) as u32;
-        for (i, s) in self.samples.iter().enumerate() {
-            let h = (*s as u32 * GRAPH_H / max).max(1);
-            fill(d, 4 + (i as i32) * 2, GRAPH_BOTTOM - h as i32, 2, h);
-        }
-        fill(d, 4, GRAPH_BOTTOM + 1, 60, 1);
-
-        // Layer name.
-        put_text(d, "LAYER", 4, 124, false, ON);
-        let mut lb = [0u8; 5];
-        let name = match LAYER_NAMES.get(ctx.layer as usize) {
-            Some(n) => *n,
-            None => num_str(ctx.layer as u16, &mut lb),
-        };
-        put_text(d, name, 4, 138, true, ON);
-    }
-}
-
-impl DisplayRenderer<BinaryColor> for NiceViewRenderer {
-    fn render<D: DrawTarget<Color = BinaryColor>>(&mut self, ctx: &RenderContext, display: &mut D) {
-        display.clear(OFF).ok();
-        if ctx.sleeping {
-            return;
-        }
-        self.sample(ctx.wpm);
-        match self.role {
-            Role::Central => draw_central_top(ctx, display),
-            Role::Peripheral => draw_peripheral_top(ctx, display),
-        }
-        self.draw_bottom(ctx, display);
-    }
-}
-
-/// Short name so the entry files don't need generic types.
-pub type NiceViewProcessor = DisplayProcessor<NiceView, NiceViewRenderer>;
-
-/// Left half (central).
-pub fn processor() -> NiceViewProcessor {
-    DisplayProcessor::with_renderer(NiceView::new(), NiceViewRenderer::new(Role::Central))
-        .with_render_interval(Duration::from_millis(1000))
-}
-
-/// Right half (peripheral).
-pub fn processor_peripheral() -> NiceViewProcessor {
-    DisplayProcessor::with_renderer(NiceView::new(), NiceViewRenderer::new(Role::Peripheral))
-        .with_render_interval(Duration::from_millis(1000))
-}
+            let s: BatteryStatus =
