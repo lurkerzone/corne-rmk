@@ -41,6 +41,7 @@ pub struct NiceView {
     cs: Output<'static>,
     frame: [u8; FRAME_LEN],
     vcom: bool,
+    last_vcom: Instant,
 }
 
 impl NiceView {
