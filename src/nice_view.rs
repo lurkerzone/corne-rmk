@@ -401,7 +401,7 @@ pub type NiceViewProcessor = DisplayProcessor<NiceView, NiceViewRenderer>;
 /// Left half (central).
 pub fn processor() -> NiceViewProcessor {
     DisplayProcessor::with_renderer(NiceView::new(), NiceViewRenderer::new(Role::Central))
-        .with_min_render_interval(Duration::from_millis(5))
+        .with_min_render_interval(Duration::from_millis(0))
         .with_render_interval(Duration::from_millis(500))
 }
 
