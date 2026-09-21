@@ -20,11 +20,11 @@ bind_interrupts!(struct SpiIrqs {
 
 // ---- tweak these if the picture is wrong -----------------------------------
 const PORTRAIT: bool = true;
-const FLIP: bool = false;
+const FLIP: bool = true;
 const INVERT: bool = false;
 // ---- screen content ----------------------------------------------------------
 const NUM_PROFILES: usize = 3; // RMK default is 3 BLE profiles
-const LAYER_NAMES: [&str; 4] = ["BASE", "LOWER", "RAISE", "FN"];
+const LAYER_NAMES: [&str; 4] = ["BASE", "ONE", "TWO", "THREE"];
 // -----------------------------------------------------------------------------
 
 const NATIVE_W: usize = 160;
