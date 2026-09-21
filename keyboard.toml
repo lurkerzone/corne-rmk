@@ -59,11 +59,11 @@ LCtrl   Z  X  C  D  V  K  H  Comma  Dot  Slash      KpEnter
 WM(Backspace, LAlt)  MO(1)  MT(Space, LShift)  MT(Enter, LShift)  MO(2)  Delete
 """
 
-# Layer 1 - lower (hold left inner thumb): navigation + Windows/desktop shortcuts, CapsLock/NumLock
+# Layer 1 - lower (hold left inner thumb): navigation (tap-dance arrows) + Windows/desktop shortcuts, CapsLock/NumLock
 [[keymap.layer]]
 keys = """
-_         WM(Up, LGui)    Home                  Up                       End             PageUp           _                    _                       _                        _                     _  _
-CapsLock  WM(Down, LGui)  Left                  Down                     Right           PageDown         Left                 Down                    Up                       Right                 _  NumLock
+_         WM(Up, LGui)    Home                  TD(2)                    End             _                _                    _                       _                        _                     _  _
+CapsLock  WM(Down, LGui)  TD(0)                 TD(3)                    TD(1)           _                Left                 Down                    Up                       Right                 _  NumLock
 _         _               WM(S, LShift | LGui)  WM(Left, LShift | LGui)  WM(Left, LGui)  WM(Right, LGui)  WM(D, LCtrl | LGui)  WM(Left, LCtrl | LGui)  WM(Right, LCtrl | LGui)  WM(F4, LCtrl | LGui)  _  _
 _  _  Space  Enter  _  RAlt
 """
@@ -91,6 +91,18 @@ _  _  _  _  _  _
 upper = 1
 lower = 2
 adjust = 3
+
+# Tap dances (from the .vil), used on layer 1 as TD(0)-TD(3):
+#   TD(0) Left, double-tap Home | TD(1) Right, double-tap End
+#   TD(2) Up, double-tap Ctrl+Home | TD(3) Down, double-tap Ctrl+End
+# `hold` repeats the tap key so holding an arrow still auto-repeats.
+[behavior.morse]
+morses = [
+  { tap = "Left", hold = "Left", double_tap = "Home" },
+  { tap = "Right", hold = "Right", double_tap = "End" },
+  { tap = "Up", hold = "Up", double_tap = "WM(Home, LCtrl)" },
+  { tap = "Down", hold = "Down", double_tap = "WM(End, LCtrl)" },
+]
 
 # Combos (from the .vil): Tab+Q = Escape, Z+X = Left Gui.
 # Timeout and tap-hold timing (250 ms) already match RMK's defaults.
