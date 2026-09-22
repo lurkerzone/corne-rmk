@@ -104,6 +104,12 @@ morses = [
   { tap = "Down", hold = "Down", double_tap = "WM(End, LCtrl)" },
 ]
 
+[behavior.tap_hold]
+enable_hrm = true
+prior_idle_time = "120ms"
+hold_timeout = "250ms"
+post_wait_time = "50ms"
+
 # Combos (from the .vil): Tab+Q = Escape, Z+X = Left Gui.
 # Timeout and tap-hold timing (250 ms) already match RMK's defaults.
 [behavior.combo]
