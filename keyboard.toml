@@ -97,18 +97,14 @@ adjust = 3
 #   TD(2) Up, double-tap Ctrl+Home | TD(3) Down, double-tap Ctrl+End
 # `hold` repeats the tap key so holding an arrow still auto-repeats.
 [behavior.morse]
+enable_flow_tap = true
+prior_idle_time = "120ms"
 morses = [
   { tap = "Left", hold = "Left", double_tap = "Home" },
   { tap = "Right", hold = "Right", double_tap = "End" },
   { tap = "Up", hold = "Up", double_tap = "WM(Home, LCtrl)" },
   { tap = "Down", hold = "Down", double_tap = "WM(End, LCtrl)" },
 ]
-
-[behavior.tap_hold]
-enable_hrm = true
-prior_idle_time = "120ms"
-hold_timeout = "250ms"
-post_wait_time = "50ms"
 
 # Combos (from the .vil): Tab+Q = Escape, Z+X = Left Gui.
 # Timeout and tap-hold timing (250 ms) already match RMK's defaults.
