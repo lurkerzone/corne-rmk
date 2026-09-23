@@ -164,7 +164,7 @@ operations = [
 # Number of combo slots Vial shows (default 8, max 256; more slots use a little more RAM).
 [rmk]
 combo_max_num = 32
-split_central_sleep_timeout_seconds = 1800
+split_central_sleep_timeout_seconds = 180
 
 # Hold the two outer-left thumb keys while Vial runs Unlock.
 [host]
