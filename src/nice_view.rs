@@ -1,6 +1,8 @@
 //! Sharp LS011B7DH03 (nice!view) driver + ZMK-style status screen for RMK.
 //! Wiring: SCK = P0.20, MOSI = P0.17, CS = P0.06 (active HIGH).
 
+use core::sync::atomic::{AtomicU32, Ordering};
+
 use embassy_nrf::gpio::{Level, Output, OutputDrive};
 use embassy_nrf::interrupt::{self, InterruptExt, Priority};
 use embassy_nrf::{Peripherals, bind_interrupts, peripherals, spim};
@@ -26,6 +28,10 @@ const INVERT: bool = false;
 const NUM_PROFILES: usize = 3; // RMK default is 3 BLE profiles
 const LAYER_NAMES: [&str; 4] = ["BASE", "ONE", "TWO", "THREE"];
 // -----------------------------------------------------------------------------
+
+// --- temporary debug overlay: remove once sleep/wake issue is found ---
+static FRAME_COUNT: AtomicU32 = AtomicU32::new(0);
+// ------------------------------------------------------------------
 
 const NATIVE_W: usize = 160;
 const NATIVE_H: usize = 68;
@@ -383,6 +389,15 @@ impl NiceViewRenderer {
 impl DisplayRenderer<BinaryColor> for NiceViewRenderer {
     fn render<D: DrawTarget<Color = BinaryColor>>(&mut self, ctx: &RenderContext, display: &mut D) {
         display.clear(OFF).ok();
+
+        // --- temporary debug overlay: remove once sleep/wake issue is found ---
+        let n = FRAME_COUNT.fetch_add(1, Ordering::Relaxed);
+        let mut db = [0u8; 5];
+        let cnt = num_str((n % 10000) as u16, &mut db);
+        put_text(display, cnt, 0, 0, false, ON);
+        put_text(display, if ctx.sleeping { "Z" } else { "A" }, 40, 0, false, ON);
+        // ------------------------------------------------------------------
+
         if ctx.sleeping {
             return;
         }
