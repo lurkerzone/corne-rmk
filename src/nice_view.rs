@@ -29,10 +29,6 @@ const NUM_PROFILES: usize = 3; // RMK default is 3 BLE profiles
 const LAYER_NAMES: [&str; 4] = ["BASE", "ONE", "TWO", "THREE"];
 // -----------------------------------------------------------------------------
 
-// --- temporary debug overlay: remove once sleep/wake issue is found ---
-static FRAME_COUNT: AtomicU32 = AtomicU32::new(0);
-// ------------------------------------------------------------------
-
 const NATIVE_W: usize = 160;
 const NATIVE_H: usize = 68;
 const LINE_BYTES: usize = NATIVE_W / 8;
