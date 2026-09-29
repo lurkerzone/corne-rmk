@@ -386,14 +386,6 @@ impl DisplayRenderer<BinaryColor> for NiceViewRenderer {
     fn render<D: DrawTarget<Color = BinaryColor>>(&mut self, ctx: &RenderContext, display: &mut D) {
         display.clear(OFF).ok();
 
-        // --- temporary debug overlay: remove once sleep/wake issue is found ---
-        let n = FRAME_COUNT.fetch_add(1, Ordering::Relaxed);
-        let mut db = [0u8; 5];
-        let cnt = num_str((n % 10000) as u16, &mut db);
-        put_text(display, cnt, 0, 0, false, ON);
-        put_text(display, if ctx.sleeping { "Z" } else { "A" }, 40, 0, false, ON);
-        // ------------------------------------------------------------------
-
         if ctx.sleeping {
             return;
         }
