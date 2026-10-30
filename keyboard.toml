@@ -1,0 +1,159 @@
+# Effiddy (50-key split) on nice!nano-class nRF52840 boards.
+# Matrix pins come from the ZMK Effiddy overlays (effiddy_left.overlay / effiddy_right.overlay),
+# translated with the nice!nano `pro_micro` map:
+#   D2=P0_17 D3=P0_20 D4=P0_22 D5=P0_24 D6=P1_00 D8=P1_04 D9=P1_06 D10=P0_09
+#   D15=P1_13 D16=P0_10 D18=P1_15 D19=P0_02 D20=P0_29 D21=P0_31
+# No display on this board. P0_09 / P0_10 are NFC pins, so Cargo.toml needs embassy-nrf's
+# `nfc-pins-as-gpio` feature (already enabled).
+#
+# The keymap below is only the factory default. Load effiddy_RMK.vil in Vial afterwards to get
+# your real keymap, macros, tap dances and combos.
+#
+# Left half = central (USB host side). Right half = peripheral.
+# If your halves are swapped, swap which device you flash with `central` vs `peripheral`.
+#
+# The ble_addr values below are the old Corne ones. If the Corne is still in use at the
+# same time, change `ble_addr` on BOTH halves to a new unique pair.
+
+[keyboard]
+name = "Effiddy RMK"
+product_name = "Effiddy RMK"
+vendor_id = 0x4c4b
+product_id = 0x636f
+manufacturer = "lurkerzone"
+chip = "nrf52840"
+usb_enable = true
+
+# nice!nano v2 has the REG0/REG1 LC filters. The generic nrf52840 chip default
+# leaves DCDC off; turn it on explicitly (without using board = "nice!nano_v2",
+# which also injects VDDH battery ADC and hangs in saadc.calibrate() before USB).
+[chip.nrf52840]
+dcdc_reg0 = true
+dcdc_reg1 = true
+dcdc_reg0_voltage = "3V3"
+
+# `[layout]` holds the *physical* arrangement (grid size + `map` of key positions).
+# The logical *behavior* (layers and keycodes) lives in `[keymap]` below.
+# Effiddy: 5 matrix rows x 12 global columns, 50 real keys (25 per half):
+#   row 0 "Nums"   5 keys per half (cols 1-5)
+#   row 1 "Above"  5 keys per half (cols 1-5)
+#   row 2 "Home"   6 keys per half (cols 0-5, col 0 = outer)
+#   row 3 "Bottom" 6 keys per half (cols 0-5, col 0 = outer)
+#   row 4 "Thumb"  3 keys per half (cols 3-5)
+# Left half uses global cols 0-5 (0 = outer, 5 = inner). Right half uses global cols 6-11
+# (6 = outer, 11 = inner), so the right half reads inner -> outer from left to right.
+[layout]
+rows = 5
+cols = 12
+map = """
+       (0,1)  (0,2)  (0,3)  (0,4)  (0,5)         (0,11) (0,10) (0,9)  (0,8)  (0,7)
+       (1,1)  (1,2)  (1,3)  (1,4)  (1,5)         (1,11) (1,10) (1,9)  (1,8)  (1,7)
+(2,0)  (2,1)  (2,2)  (2,3)  (2,4)  (2,5)         (2,11) (2,10) (2,9)  (2,8)  (2,7)  (2,6)
+(3,0)  (3,1)  (3,2)  (3,3)  (3,4)  (3,5)         (3,11) (3,10) (3,9)  (3,8)  (3,7)  (3,6)
+                             (4,3)  (4,4)  (4,5)    (4,11) (4,10) (4,9)
+"""
+
+[keymap]
+layers = 4
+
+# Layer 0 - Base (fallback). Numbers live on the physical number row.
+# The outer column only exists on the Home and Bottom rows, so Tab and Escape (which sat on
+# Corne outer keys) moved to layer 1; Backspace is on the bottom-right outer key.
+[[keymap.layer]]
+keys = """
+        Kc1  Kc2  Kc3  Kc4  Kc5          Kc6  Kc7  Kc8    Kc9  Kc0
+        Q    W    F    P    B            J    L    U       Y    SemiColon
+LShift  A    R    S    T    G            M    N    E       I    O          Quote
+LCtrl   Z    X    C    D    V            K    H    Comma   Dot  Slash      Backspace
+                       LAlt  MO(1)  Space    Enter  MO(2)  RAlt
+"""
+
+# Layer 1 - lower (function row, Escape/Tab, arrows)
+[[keymap.layer]]
+keys = """
+        F1      F2   F3  F4  F5          F6  F7    F8  F9     F10
+        Escape  Tab  _   _   _           _   _     _   _      _
+_       _       _    _   _   _           Left  Down  Up  Right  _  _
+_       _       _    _   _   _           _   _     _   _      _  _
+                        LGui  _  Space    Enter  _  RAlt
+"""
+
+# Layer 2 - raise (shifted number row, brackets and symbols)
+[[keymap.layer]]
+keys = """
+        SHIFTED(Kc1)  SHIFTED(Kc2)  SHIFTED(Kc3)  SHIFTED(Kc4)  SHIFTED(Kc5)          SHIFTED(Kc6)    SHIFTED(Kc7)   SHIFTED(Kc8)          SHIFTED(Kc9)           SHIFTED(Kc0)
+        _             _             _             _             _                     _               _              _                     _                      _
+_       _             _             _             _             _                     Minus           Equal          LeftBracket           RightBracket           Backslash            Grave
+_       _             _             _             _             _                     SHIFTED(Minus)  SHIFTED(Equal) SHIFTED(LeftBracket)  SHIFTED(RightBracket)  SHIFTED(Backslash)   SHIFTED(Grave)
+                                                    LGui  _  Space    Enter  MO(3)  RAlt
+"""
+
+# Layer 3 - fourth layer (empty by default; edit in Vial).
+# Hold Raise (MO(2)) then hold the key between Enter and RAlt to use MO(3).
+[[keymap.layer]]
+keys = """
+       _  _  _  _  _          _  _  _  _  _
+       _  _  _  _  _          _  _  _  _  _
+_      _  _  _  _  _          _  _  _  _  _  _
+_      _  _  _  _  _          _  _  _  _  _  _
+                 _  _  _          _  _  _
+"""
+
+# Hold LGui + Lower (left thumbs) while Vial runs Unlock.
+[host]
+vial_enabled = true
+rynk_enabled = false
+unlock_keys = [[4, 3], [4, 4]]
+
+# One-time factory reset: `clear_storage = true` erases the on-flash storage
+# partition on every boot (bond info, saved Vial edits, layout options). Required
+# once when moving from the old 42-key Corne matrix to this 50-key one, because the
+# keymap saved in flash has the wrong size. Flash central *and* peripheral with this
+# on, power-cycle each half, then comment the line back out and flash a second time.
+[storage]
+# clear_storage = true
+
+# Turn off defmt logging at the codegen level: the RMK macros emit a null
+# defmt logger instead of wiring up defmt-rtt, and combined with
+# `DEFMT_LOG = "off"` in .cargo/config.toml this lets LTO eliminate every
+# log call site. Restore `defmt_log = true` if you want RTT logs back.
+[dependency]
+defmt_log = false
+
+[ble]
+enabled = true
+
+[split]
+connection = "ble"
+
+# Left half. Rows (top -> bottom): Nums, Above, Home, Bottom, Thumb = pro_micro 21,18,19,20,9.
+# Cols (outer -> inner) = pro_micro 6,5,8,16,10,4.
+[split.central]
+rows = 5
+cols = 6
+row_offset = 0
+col_offset = 0
+ble_addr = [0x18, 0xe2, 0x21, 0x80, 0xc0, 0xc7]
+battery_adc_pin = "vddh"
+battery_user_description = "Left"
+
+[split.central.matrix]
+matrix_type = "normal"
+row_pins = ["P0_31", "P1_15", "P0_02", "P0_29", "P1_06"]
+col_pins = ["P1_00", "P0_24", "P1_04", "P0_10", "P0_09", "P0_22"]
+
+# Right half (effiddy_right.overlay). Rows (top -> bottom) = pro_micro 2,5,4,3,10.
+# Cols (outer -> inner) = pro_micro 15,18,16,8,9,19, placed at global cols 6-11.
+[[split.peripheral]]
+rows = 5
+cols = 6
+row_offset = 0
+col_offset = 6
+ble_addr = [0x7e, 0xfe, 0x73, 0x9e, 0x66, 0xe3]
+battery_adc_pin = "vddh"
+battery_user_description = "Right"
+
+[split.peripheral.matrix]
+matrix_type = "normal"
+row_pins = ["P0_17", "P0_24", "P0_22", "P0_20", "P0_09"]
+col_pins = ["P1_13", "P1_15", "P0_10", "P1_04", "P1_06", "P0_02"]
