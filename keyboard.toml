@@ -54,7 +54,7 @@ map = """
 """
 
 [keymap]
-layers = 4
+layers = 6
 
 # Layer 0 - Base (fallback). Numbers live on the physical number row.
 # The outer column only exists on the Home and Bottom rows, so Tab and Escape (which sat on
@@ -90,6 +90,24 @@ _       _             _             _             _             _               
 
 # Layer 3 - fourth layer (empty by default; edit in Vial).
 # Hold Raise (MO(2)) then hold the key between Enter and RAlt to use MO(3).
+[[keymap.layer]]
+keys = """
+       _  _  _  _  _          _  _  _  _  _
+       _  _  _  _  _          _  _  _  _  _
+_      _  _  _  _  _          _  _  _  _  _  _
+_      _  _  _  _  _          _  _  _  _  _  _
+                 _  _  _          _  _  _
+"""
+
+[[keymap.layer]]
+keys = """
+       _  _  _  _  _          _  _  _  _  _
+       _  _  _  _  _          _  _  _  _  _
+_      _  _  _  _  _          _  _  _  _  _  _
+_      _  _  _  _  _          _  _  _  _  _  _
+                 _  _  _          _  _  _
+"""
+
 [[keymap.layer]]
 keys = """
        _  _  _  _  _          _  _  _  _  _
