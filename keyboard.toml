@@ -84,7 +84,7 @@ keys = """
         SHIFTED(Kc1)  SHIFTED(Kc2)  SHIFTED(Kc3)  SHIFTED(Kc4)  SHIFTED(Kc5)          SHIFTED(Kc6)    SHIFTED(Kc7)   SHIFTED(Kc8)          SHIFTED(Kc9)           SHIFTED(Kc0)
         _             _             _             _             _                     _               _              _                     _                      _
 _       _             _             _             _             _                     Minus           Equal          LeftBracket           RightBracket           Backslash            Grave
-_       _             _             _             _             _                     SHIFTED(Minus)  SHIFTED(Equal) SHIFTED(LeftBracket)  SHIFTED(RightBracket)  SHIFTED(Backslash)   SHIFTED(Grave)
+_       _             _             _             _             _                     SHIFTED(Minus) SHIFTED(Equal) SHIFTED(LeftBracket)  SHIFTED(RightBracket)  SHIFTED(Backslash)   SHIFTED(Grave)
                                                     LGui  _  Space    Enter  MO(3)  RAlt
 """
 
@@ -99,6 +99,7 @@ _      _  _  _  _  _          _  _  _  _  _  _
                  _  _  _          _  _  _
 """
 
+# Layer 4 - fifth layer (empty; edit in Vial). Reach it with MO(4).
 [[keymap.layer]]
 keys = """
        _  _  _  _  _          _  _  _  _  _
@@ -108,6 +109,7 @@ _      _  _  _  _  _          _  _  _  _  _  _
                  _  _  _          _  _  _
 """
 
+# Layer 5 - sixth layer (empty; edit in Vial). Reach it with MO(5).
 [[keymap.layer]]
 keys = """
        _  _  _  _  _          _  _  _  _  _
@@ -125,11 +127,16 @@ unlock_keys = [[4, 3], [4, 4]]
 
 # One-time factory reset: `clear_storage = true` erases the on-flash storage
 # partition on every boot (bond info, saved Vial edits, layout options). Required
-# once when moving from the old 42-key Corne matrix to this 50-key one, because the
-# keymap saved in flash has the wrong size. Flash central *and* peripheral with this
-# on, power-cycle each half, then comment the line back out and flash a second time.
+# once when the keymap size changes (42-key Corne -> 50-key Effiddy, and 4 -> 6 layers),
+# because the keymap saved in flash has the wrong size. Flash central *and* peripheral with
+# this on, power-cycle each half, then comment the line back out and flash a second time.
 [storage]
-# clear_storage = true
+clear_storage = true
+
+# RMK internal limits. Raising these uses more RAM (and flash for saved Vial data).
+[rmk]
+combo_max_num = 16     # combos the keyboard can store (default 8)
+combo_max_length = 4   # most keys in a single combo (default 4)
 
 # Turn off defmt logging at the codegen level: the RMK macros emit a null
 # defmt logger instead of wiring up defmt-rtt, and combined with
