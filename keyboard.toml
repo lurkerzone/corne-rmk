@@ -131,7 +131,7 @@ unlock_keys = [[4, 3], [4, 4]]
 # because the keymap saved in flash has the wrong size. Flash central *and* peripheral with
 # this on, power-cycle each half, then comment the line back out and flash a second time.
 [storage]
-clear_storage = true
+# clear_storage = true
 
 # RMK internal limits. Raising these uses more RAM (and flash for saved Vial data).
 [rmk]
