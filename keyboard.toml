@@ -111,7 +111,7 @@ unlock_keys = [[4, 3], [4, 4]]
 # keymap saved in flash has the wrong size. Flash central *and* peripheral with this
 # on, power-cycle each half, then comment the line back out and flash a second time.
 [storage]
-clear_storage = true
+# clear_storage = true
 
 # Turn off defmt logging at the codegen level: the RMK macros emit a null
 # defmt logger instead of wiring up defmt-rtt, and combined with
